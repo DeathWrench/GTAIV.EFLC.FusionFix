@@ -123,9 +123,9 @@ private:
     std::optional<std::string> GetPrefNameByID(auto prefID)
     {
         auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefID](auto& it)
-        {
-            return it.prefID == prefID;
-        });
+            {
+                return it.prefID == prefID;
+            });
         if (it != std::end(aMenuPrefs))
             return std::string(it->name);
         return std::nullopt;
@@ -133,9 +133,9 @@ private:
     std::optional<int32_t> GetPrefIDByName(auto prefName)
     {
         auto it = std::find_if(std::begin(aMenuPrefs), std::end(aMenuPrefs), [&prefName](auto& it)
-        {
-            return std::string_view(it.name) == prefName;
-        });
+            {
+                return std::string_view(it.name) == prefName;
+            });
         if (it != std::end(aMenuPrefs))
             return it->prefID;
         return std::nullopt;
@@ -173,7 +173,7 @@ public:
                 }
             }
             else if ((std::filesystem::perms::owner_read & status) == std::filesystem::perms::owner_read &&
-            (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
+                (std::filesystem::perms::owner_write & status) == std::filesystem::perms::owner_write)
             {
                 cfgPath = it;
                 break;
@@ -233,7 +233,7 @@ public:
                         }
                     }
                     else if (!ec && ((std::filesystem::perms::owner_read & status.permissions()) == std::filesystem::perms::owner_read &&
-                             (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
+                        (std::filesystem::perms::owner_write & status.permissions()) == std::filesystem::perms::owner_write))
                     {
                         d3d9cfgPath = it;
                         break;
@@ -301,7 +301,7 @@ public:
             { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                          "MENU_DISPLAY_TREE_LIGHTING", 6, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_SUNSHAFTS",              "MISC",       "SunShafts",                          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",             "FRAMELIMIT", "DisplayFpsCounter",                  "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_ALWAYSRUN",              "MISC",       "AlwaysRun",                          "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_ENHANCEDMOVE",           "MISC",       "EnhancedMove",                       "",                           7, nullptr, (int32_t)EnhancedMoveText.eMO_OFF, std::distance(std::begin(EnhancedMoveText.data), std::end(EnhancedMoveText.data)) - 1 },
             { 0, "PREF_ALTDIALOGUE",            "MISC",       "AltDialogue",                        "",                           0, nullptr, 0, 1 },
             { 0, "PREF_COVERCENTERING",         "MISC",       "CameraCenteringInCover",             "",                           0, nullptr, 0, 1 },
             { 0, "PREF_KBCAMCENTERDELAY",       "MISC",       "DelayBeforeCenteringCameraKB",       "",                           4, nullptr, 0, 9 },
@@ -340,6 +340,7 @@ public:
             { 0, "PREF_MOUSEAIMSENSITIVITY",    "MISC",       "MouseAimSensitivity",                "",                           10, nullptr, 0, 21 },
             { 0, "PREF_NOWARDROBEFADING",       "MISC",       "DisableWardrobeTransition",          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_STOPTAXI",               "MISC",       "InstantStopTaxi",                    "",                           0, nullptr, 0, 1 },
+            { 0, "PREF_SPRINTINTERIOR",         "MISC",       "SprintInInteriors",                  "",                           0, nullptr, 0, 1 },
             { 0, "PREF_SAO",                    "MISC",       "AmbientOcclusion",                   "",                           0, nullptr, 0, 1 },
             // Enums are at capacity, to use more enums, replace multiplayer ones. On/Off toggles should still be possible to add.
         };
@@ -423,12 +424,12 @@ public:
 
         pattern = find_pattern("C6 05 ? ? ? ? ? 5E 74 1D", "C6 05 ? ? ? ? ? 74 1B 38 1D", "C6 05 ? ? ? ? ? 5E 74 1B");
         static auto slidersHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-        {
-            for (auto& it : matchingSettingsList)
             {
-                FusionFixSettings.Set(it.first, FusionFixSettings.Get(it.second));
-            }
-        });
+                for (auto& it : matchingSettingsList)
+                {
+                    FusionFixSettings.Set(it.first, FusionFixSettings.Get(it.second));
+                }
+            });
 
         pattern = find_pattern("3D ? ? ? ? 7C DF 83 EC 10", "3D ? ? ? ? 7C E1 B8");
         injector::WriteMemory(pattern.get_first(1), 136 - slidersList.size(), true);
@@ -618,6 +619,12 @@ public:
 
     struct
     {
+        enum eEnhancedMoveText { eOff, eOn, ePC, eConsole, eMO_OFF, eMO_ON, eArmedOnly, eNoJogging };
+        std::vector<const char*> data = { "Off", "On", "PC", "Console", "MO_OFF", "MO_ON", "Armed Only", "No Jogging" };
+    } EnhancedMoveText;
+
+    struct
+    {
         enum eExtraNightShadowsText { eOff, eLampposts, eLampostsHeadl, eLampHeadlVNS };
         std::vector<const char*> data = { "MO_OFF", "Lampposts", "LampostsHeadl", "LampHeadlVNS" };
     } ExtraNightShadowsText;
@@ -652,453 +659,453 @@ public:
     Settings()
     {
         FusionFix::onInitEventAsync() += []()
-        {
-            // runtime settings
-            auto pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");
-            static auto reg = *pattern.get_first<uint8_t>(2);
-            struct IniWriter
             {
-                void operator()(injector::reg_pack& regs)
+                // runtime settings
+                auto pattern = hook::pattern("89 1C ? ? ? ? ? E8 ? ? ? ? A1");
+                static auto reg = *pattern.get_first<uint8_t>(2);
+                struct IniWriter
                 {
-                    auto id = regs.edx;
-                    auto value = regs.ebx;
-
-                    if (reg == 0x8D)
+                    void operator()(injector::reg_pack& regs)
                     {
-                        id = regs.ecx;
-                        value = regs.ebx;
-                    }
+                        auto id = regs.edx;
+                        auto value = regs.ebx;
 
-                    auto old = FusionFixSettings(id);
-
-                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
-                    {
-                        if (prefID == id)
+                        if (reg == 0x8D)
                         {
-                            if (int32_t(value) <= idStart)
-                            {
-                                if (old > idStart)
-                                    value = idStart;
-                                else
-                                    value = idEnd;
-                            }
+                            id = regs.ecx;
+                            value = regs.ebx;
                         }
-                    });
 
-                    FusionFixSettings.Set(id, value);
+                        auto old = FusionFixSettings(id);
 
-                    // custom handler for language switch
-                    if (FusionFixSettings.isSame(id, "PREF_CURRENT_LANGUAGE"))
-                    {
-                        FusionFixSettings.SaveLanguagePref(value);
-                    }
+                        FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
+                            {
+                                if (prefID == id)
+                                {
+                                    if (int32_t(value) <= idStart)
+                                    {
+                                        if (old > idStart)
+                                            value = idStart;
+                                        else
+                                            value = idEnd;
+                                    }
+                                }
+                            });
 
-                    // custom handler for graphics api switch
-                    if (FusionFixSettings.isSame(id, "PREF_GRAPHICSAPI"))
-                    {
-                        auto vulkan = LoadLibraryExW(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
-                        auto FusionFixGraphicsApiSwitch = GetProcAddress(GetModuleHandleW(L"d3d9.dll"), "FusionFixGraphicsApiSwitch");
+                        FusionFixSettings.Set(id, value);
 
-                        if (vulkan == NULL || !FusionFixGraphicsApiSwitch)
+                        // custom handler for language switch
+                        if (FusionFixSettings.isSame(id, "PREF_CURRENT_LANGUAGE"))
                         {
-                            if (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll"))
-                                FusionFixSettings.Set(id, 1);
+                            FusionFixSettings.SaveLanguagePref(value);
+                        }
+
+                        // custom handler for graphics api switch
+                        if (FusionFixSettings.isSame(id, "PREF_GRAPHICSAPI"))
+                        {
+                            auto vulkan = LoadLibraryExW(L"vulkan.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+                            auto FusionFixGraphicsApiSwitch = GetProcAddress(GetModuleHandleW(L"d3d9.dll"), "FusionFixGraphicsApiSwitch");
+
+                            if (vulkan == NULL || !FusionFixGraphicsApiSwitch)
+                            {
+                                if (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll"))
+                                    FusionFixSettings.Set(id, 1);
+                                else
+                                    FusionFixSettings.Set(id, 0);
+                            }
                             else
-                                FusionFixSettings.Set(id, 0);
-                        }
-                        else
-                        {
-                            FreeLibrary(vulkan);
-                            CIniReader d3d9cfg(CSettings::d3d9cfgPath);
-                            d3d9cfg.WriteInteger("MAIN", "API", value, true);
-                        }
-                    }
-                }
-            }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
-
-            pattern = find_pattern("89 04 9D ? ? ? ? 0F BF 44 16", "89 14 BD ? ? ? ? 0F BF 49 12");
-            static auto reg4 = *pattern.get_first<uint8_t>(2);
-            struct IniWriterMouse
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    auto id = regs.ebx;
-                    auto value = regs.eax;
-
-                    if (reg4 == 0xBD)
-                    {
-                        id = regs.edi;
-                        value = regs.edx;
-                    }
-
-                    auto old = FusionFixSettings(id);
-
-                    FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
-                    {
-                        if (prefID == id)
-                        {
-                            if (int32_t(value) <= idStart)
                             {
-                                if (old > idStart)
-                                    value = idStart;
-                                else
-                                    value = idEnd;
+                                FreeLibrary(vulkan);
+                                CIniReader d3d9cfg(CSettings::d3d9cfgPath);
+                                d3d9cfg.WriteInteger("MAIN", "API", value, true);
                             }
                         }
-                    });
-
-                    FusionFixSettings.Set(id, value);
-                }
-            }; injector::MakeInline<IniWriterMouse>(pattern.get_first(0), pattern.get_first(7));
-
-            pattern = find_pattern("8B 1C 95 ? ? ? ? 89 54 24 14", "8B 1C 8D ? ? ? ? 89 4C 24 18");
-            static auto reg2 = *pattern.get_first<uint8_t>(2);
-            struct MenuTogglesHook1
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    if (reg2 == 0x8D)
-                    {
-                        regs.ebx = FusionFixSettings.Get(regs.ecx);
-                        return;
                     }
-                    regs.ebx = FusionFixSettings.Get(regs.edx);
-                }
-            }; injector::MakeInline<MenuTogglesHook1>(pattern.get_first(0), pattern.get_first(7));
+                }; injector::MakeInline<IniWriter>(pattern.get_first(0), pattern.get_first(7));
 
-            pattern = find_pattern("8B 14 85 ? ? ? ? 66 83 F9 31", "8B 0C 8D ? ? ? ? 75 12");
-            static auto reg3 = *pattern.get_first<uint8_t>(2);
-            struct MenuTogglesHook2
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    if (reg3 == 0x8D)
-                    {
-                        regs.ecx = FusionFixSettings.Get(regs.ecx);
-                        return;
-                    }
-                    regs.edx = FusionFixSettings.Get(regs.eax);
-                }
-            }; injector::MakeInline<MenuTogglesHook2>(pattern.get_first(0), pattern.get_first(7));
-
-            // show game in display menu
-            pattern = find_pattern("75 1F FF 35 ? ? ? ? E8 ? ? ? ? 8B 4C 24 18", "75 10 57 E8 ? ? ? ? 83 C4 04 83 F8 03");
-            injector::MakeNOP(pattern.get_first(), 2);
-
-            pattern = hook::pattern("83 F8 03 0F 44 CE");
-            if (!pattern.empty())
-            {
-                struct MenuHook
+                pattern = find_pattern("89 04 9D ? ? ? ? 0F BF 44 16", "89 14 BD ? ? ? ? 0F BF 49 12");
+                static auto reg4 = *pattern.get_first<uint8_t>(2);
+                struct IniWriterMouse
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        regs.ecx = 1;
-                    }
-                }; injector::MakeInline<MenuHook>(pattern.get_first(0), pattern.get_first(6));
-            }
-            else
-            {
-                pattern = hook::pattern("75 02 B3 01 57 E8");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(), 2);
-            }
+                        auto id = regs.ebx;
+                        auto value = regs.eax;
 
-            pattern = hook::pattern("7E 4E 8A 1D ? ? ? ? 8B 35");
-            if (!pattern.empty())
-                injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
-            else
-            {
-                pattern = hook::pattern("83 F8 03 7F 06");
-                if (!pattern.empty())
-                    injector::MakeNOP(pattern.get_first(3), 2);
-            }
-
-            // Same but for Game tab
-            static auto shouldModifyMenuBackground = [](int curMenuTab = *pMenuTab) -> bool
-            {
-                auto selectedItem = CMenu::getSelectedItem();
-                return (curMenuTab == 8) ||  // Everything in Display Tab
-                    (curMenuTab == 0 && selectedItem == 18) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
-                    (curMenuTab == 5 && selectedItem == 8) ||  // PREF_CENTEREDCAMERA in Controls Tab
-                    (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
-            };
-
-            pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
-            if (!pattern.empty())
-            {
-                static auto loc_5C27AD = resolve_displacement(pattern.get_first(3)).value();
-                struct MenuBackgroundHook1
-                {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        if (regs.esi != 49 && !shouldModifyMenuBackground(regs.esi))
+                        if (reg4 == 0xBD)
                         {
-                            return_to(loc_5C27AD);
+                            id = regs.edi;
+                            value = regs.edx;
+                        }
+
+                        auto old = FusionFixSettings(id);
+
+                        FusionFixSettings.ForEachPref([&](int32_t prefID, int32_t idStart, int32_t idEnd)
+                            {
+                                if (prefID == id)
+                                {
+                                    if (int32_t(value) <= idStart)
+                                    {
+                                        if (old > idStart)
+                                            value = idStart;
+                                        else
+                                            value = idEnd;
+                                    }
+                                }
+                            });
+
+                        FusionFixSettings.Set(id, value);
+                    }
+                }; injector::MakeInline<IniWriterMouse>(pattern.get_first(0), pattern.get_first(7));
+
+                pattern = find_pattern("8B 1C 95 ? ? ? ? 89 54 24 14", "8B 1C 8D ? ? ? ? 89 4C 24 18");
+                static auto reg2 = *pattern.get_first<uint8_t>(2);
+                struct MenuTogglesHook1
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        if (reg2 == 0x8D)
+                        {
+                            regs.ebx = FusionFixSettings.Get(regs.ecx);
+                            return;
+                        }
+                        regs.ebx = FusionFixSettings.Get(regs.edx);
+                    }
+                }; injector::MakeInline<MenuTogglesHook1>(pattern.get_first(0), pattern.get_first(7));
+
+                pattern = find_pattern("8B 14 85 ? ? ? ? 66 83 F9 31", "8B 0C 8D ? ? ? ? 75 12");
+                static auto reg3 = *pattern.get_first<uint8_t>(2);
+                struct MenuTogglesHook2
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        if (reg3 == 0x8D)
+                        {
+                            regs.ecx = FusionFixSettings.Get(regs.ecx);
+                            return;
+                        }
+                        regs.edx = FusionFixSettings.Get(regs.eax);
+                    }
+                }; injector::MakeInline<MenuTogglesHook2>(pattern.get_first(0), pattern.get_first(7));
+
+                // show game in display menu
+                pattern = find_pattern("75 1F FF 35 ? ? ? ? E8 ? ? ? ? 8B 4C 24 18", "75 10 57 E8 ? ? ? ? 83 C4 04 83 F8 03");
+                injector::MakeNOP(pattern.get_first(), 2);
+
+                pattern = hook::pattern("83 F8 03 0F 44 CE");
+                if (!pattern.empty())
+                {
+                    struct MenuHook
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            regs.ecx = 1;
+                        }
+                    }; injector::MakeInline<MenuHook>(pattern.get_first(0), pattern.get_first(6));
+                }
+                else
+                {
+                    pattern = hook::pattern("75 02 B3 01 57 E8");
+                    if (!pattern.empty())
+                        injector::MakeNOP(pattern.get_first(), 2);
+                }
+
+                pattern = hook::pattern("7E 4E 8A 1D ? ? ? ? 8B 35");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(0), 0xEB, true);
+                else
+                {
+                    pattern = hook::pattern("83 F8 03 7F 06");
+                    if (!pattern.empty())
+                        injector::MakeNOP(pattern.get_first(3), 2);
+                }
+
+                // Same but for Game tab
+                static auto shouldModifyMenuBackground = [](int curMenuTab = *pMenuTab) -> bool
+                    {
+                        auto selectedItem = CMenu::getSelectedItem();
+                        return (curMenuTab == 8) ||  // Everything in Display Tab
+                            (curMenuTab == 0 && selectedItem == 18) ||  // PREF_EXTRANIGHTSHADOWS in Game Tab
+                            (curMenuTab == 5 && selectedItem == 8) ||  // PREF_CENTEREDCAMERA in Controls Tab
+                            (curMenuTab == 5 && selectedItem == 9);     // PREF_CENTEREDCAMERAFOOT in Controls Tab
+                    };
+
+                pattern = hook::pattern("83 FE ? 75 ? FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 ? 85 C0 79");
+                if (!pattern.empty())
+                {
+                    static auto loc_5C27AD = resolve_displacement(pattern.get_first(3)).value();
+                    struct MenuBackgroundHook1
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (regs.esi != 49 && !shouldModifyMenuBackground(regs.esi))
+                            {
+                                return_to(loc_5C27AD);
+                            }
+                        }
+                    }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0));
+                }
+                else
+                {
+                    pattern = hook::pattern("83 3D ? ? ? ? ? 75 13 8B 0D ? ? ? ? 51 E8 ? ? ? ? 83 C4 04 85 C0 7D 21");
+                    static auto loc_5C27AD = resolve_displacement(pattern.get_first(7)).value();
+                    static auto dword_10FBF24 = *pattern.get_first<uint32_t>(2);
+                    struct MenuBackgroundHook1
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (dword_10FBF24 == 49 && !shouldModifyMenuBackground(dword_10FBF24))
+                            {
+                                return_to(loc_5C27AD);
+                            }
+                        }
+                    }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0), pattern.get_first(9));
+                }
+
+                pattern = find_pattern("83 F8 ? 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? 83 F8", "83 F8 03 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? 83 F8 31");
+                static auto loc_5A9815 = resolve_displacement(pattern.get_first(3)).value();
+                struct MenuBackgroundHook2
+                {
+                    void operator()(injector::reg_pack& regs)
+                    {
+                        if (regs.eax == 3 || shouldModifyMenuBackground(regs.eax))
+                        {
+                            return_to(loc_5A9815);
                         }
                     }
-                }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0));
-            }
-            else
-            {
-                pattern = hook::pattern("83 3D ? ? ? ? ? 75 13 8B 0D ? ? ? ? 51 E8 ? ? ? ? 83 C4 04 85 C0 7D 21");
-                static auto loc_5C27AD = resolve_displacement(pattern.get_first(7)).value();
-                static auto dword_10FBF24 = *pattern.get_first<uint32_t>(2);
-                struct MenuBackgroundHook1
+                }; injector::MakeInline<MenuBackgroundHook2>(pattern.get_first(0), pattern.get_first(9));
+
+                // And for map tab
+                pattern = hook::pattern("83 3D ? ? ? ? ? 75 ? 83 FE ? 74 ? C6 05 ? ? ? ? ? E8 ? ? ? ? 83 3D");
+                if (!pattern.empty())
+                {
+                    static auto loc_5A8557 = resolve_displacement(pattern.get_first(7)).value();
+                    struct MenuBackgroundHook3
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (pMenuTab && (*pMenuTab != 49 && !shouldModifyMapMenuBackground(*pMenuTab)))
+                            {
+                                return_to(loc_5A8557);
+                            }
+                        }
+                    }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(9));
+                }
+                else
+                {
+                    pattern = hook::pattern("39 05 ? ? ? ? 75 12 39 44 24 14 74 2B C6 05 ? ? ? ? ? E8 ? ? ? ? B8 ? ? ? ? 39 05 ? ? ? ? 75 12");
+                    static auto loc_5A8557 = resolve_displacement(pattern.get_first(6)).value();
+                    struct MenuBackgroundHook3
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            if (pMenuTab && (*pMenuTab != 49 && !shouldModifyMapMenuBackground(*pMenuTab)))
+                            {
+                                return_to(loc_5A8557);
+                            }
+                        }
+                    }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(8));
+                }
+
+                pattern = find_pattern("83 F8 ? 74 ? 83 F8 ? 75 ? 33 C9 8D 64 24 ? 8B 81 ? ? ? ? 3B 81 ? ? ? ? 0F 85", "83 F8 31 74 05 83 F8 3E 75 6F 33 C0 8B FF");
+                static auto loc_5AC19A = resolve_displacement(pattern.get_first(3)).value();
+                struct MenuBackgroundHook4
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        if (dword_10FBF24 == 49 && !shouldModifyMenuBackground(dword_10FBF24))
+                        if (regs.eax == 49 || shouldModifyMapMenuBackground(regs.eax))
                         {
-                            return_to(loc_5C27AD);
+                            return_to(loc_5AC19A);
                         }
                     }
-                }; injector::MakeInline<MenuBackgroundHook1>(pattern.get_first(0), pattern.get_first(9));
-            }
+                }; injector::MakeInline<MenuBackgroundHook4>(pattern.get_first(0));
 
-            pattern = find_pattern("83 F8 ? 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? 83 F8", "83 F8 03 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 0F 85 ? ? ? ? 83 F8 31");
-            static auto loc_5A9815 = resolve_displacement(pattern.get_first(3)).value();
-            struct MenuBackgroundHook2
-            {
-                void operator()(injector::reg_pack& regs)
+                // TLAD
+                pattern = hook::pattern("8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83");
+                if (!pattern.empty())
                 {
-                    if (regs.eax == 3 || shouldModifyMenuBackground(regs.eax))
+                    struct MenuBackgroundHook5
                     {
-                        return_to(loc_5A9815);
-                    }
-                }
-            }; injector::MakeInline<MenuBackgroundHook2>(pattern.get_first(0), pattern.get_first(9));
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            regs.eax = regs.ebx + 0x112;
 
-            // And for map tab
-            pattern = hook::pattern("83 3D ? ? ? ? ? 75 ? 83 FE ? 74 ? C6 05 ? ? ? ? ? E8 ? ? ? ? 83 3D");
-            if (!pattern.empty())
-            {
-                static auto loc_5A8557 = resolve_displacement(pattern.get_first(7)).value();
-                struct MenuBackgroundHook3
+                            if (shouldModifyMenuBackground())
+                                regs.eax = regs.ebx + 0x114;
+                        }
+                    }; injector::MakeInline<MenuBackgroundHook5>(pattern.get_first(0), pattern.get_first(6));
+                }
+                else
+                {
+                    pattern = hook::pattern("8D 8D ? ? ? ? 51 52 E8 ? ? ? ? 8B 08 89 4C 24 18");
+                    struct MenuBackgroundHook5
+                    {
+                        void operator()(injector::reg_pack& regs)
+                        {
+                            regs.ecx = regs.ebp + 0x112;
+
+                            if (shouldModifyMenuBackground())
+                                regs.ecx = regs.ebp + 0x114;
+                        }
+                    }; injector::MakeInline<MenuBackgroundHook5>(pattern.get_first(0), pattern.get_first(6));
+                }
+
+                pattern = find_pattern("83 3D ? ? ? ? ? 74 0C 38 05 ? ? ? ? 0F 84 ? ? ? ? 8D 84 24 ? ? ? ? 68 ? ? ? ? 50", "83 3D ? ? ? ? ? 74 0C 38 1D ? ? ? ? 0F 84 ? ? ? ? 8D 84 24");
+                static auto loc_5AF8EE = resolve_displacement(pattern.get_first(0)).value();
+                struct MenuBackgroundHook6
                 {
                     void operator()(injector::reg_pack& regs)
                     {
-                        if (pMenuTab && (*pMenuTab != 49 && !shouldModifyMapMenuBackground(*pMenuTab)))
+                        if (*pMenuTab == 8 && !shouldModifyMenuBackground())
                         {
-                            return_to(loc_5A8557);
+                            return_to(loc_5AF8EE);
                         }
                     }
-                }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(9));
-            }
-            else
-            {
-                pattern = hook::pattern("39 05 ? ? ? ? 75 12 39 44 24 14 74 2B C6 05 ? ? ? ? ? E8 ? ? ? ? B8 ? ? ? ? 39 05 ? ? ? ? 75 12");
-                static auto loc_5A8557 = resolve_displacement(pattern.get_first(6)).value();
-                struct MenuBackgroundHook3
+                }; injector::MakeInline<MenuBackgroundHook6>(pattern.get_first(0), pattern.get_first(9));
+
+                //menu scrolling
+                pattern = find_pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8 E8 ? ? ? ? D9 5C 24 30", "83 F8 10 7E 2A 6A 00 E8 ? ? ? ? 83 E8 08 89 44 24 14");
+                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
+                pattern = hook::pattern("8D 70 F8 E8 ? ? ? ? D9 5C 24 30");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xF0, true);
+                else
                 {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        if (pMenuTab && (*pMenuTab != 49 && !shouldModifyMapMenuBackground(*pMenuTab)))
+                    pattern = hook::pattern("83 E8 08 89 44 24 14");
+                    if (!pattern.empty())
+                        injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
+                }
+                pattern = find_pattern("83 FE 10 7F 08", "83 FF 10 7F 0C");
+                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
+                pattern = find_pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8", "83 F8 ? 7E ? 6A 00 E8 ? ? ? ? 83 E8 08 89 44 24 24");
+                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
+                pattern = hook::pattern("8D 70 F8 E8 ? ? ? ? D9 5C 24 38");
+                if (!pattern.empty())
+                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xF0, true);
+                else
+                {
+                    pattern = hook::pattern("83 E8 08 89 44 24 24");
+                    if (!pattern.empty())
+                        injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
+                }
+                pattern = find_pattern("8D 46 F0 66 0F 6E C0", "83 C7 F0 89 7C");
+                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xE0, true);
+
+                //Text
+                CText::Hook();
+
+                // FOG
+                pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? F3 0F 10 05");
+                if (!pattern.empty())
+                {
+                    static float* farClipMultiplier = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(), 8);
+                    static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                         {
-                            return_to(loc_5A8557);
-                        }
-                    }
-                }; injector::MakeInline<MenuBackgroundHook3>(pattern.get_first(0), pattern.get_first(8));
-            }
+                            static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                            if (fog->get())
+                                regs.xmm0.f32[0] = 1.0f;
+                            else
+                                regs.xmm0.f32[0] = *farClipMultiplier;
 
-            pattern = find_pattern("83 F8 ? 74 ? 83 F8 ? 75 ? 33 C9 8D 64 24 ? 8B 81 ? ? ? ? 3B 81 ? ? ? ? 0F 85", "83 F8 31 74 05 83 F8 3E 75 6F 33 C0 8B FF");
-            static auto loc_5AC19A = resolve_displacement(pattern.get_first(3)).value();
-            struct MenuBackgroundHook4
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    if (regs.eax == 49 || shouldModifyMapMenuBackground(regs.eax))
-                    {
-                        return_to(loc_5AC19A);
-                    }
+                            if (bIsQUB3D)
+                            {
+                                regs.xmm0.f32[0] = 0.1f;
+                                bIsQUB3D = false;
+                            }
+                        });
                 }
-            }; injector::MakeInline<MenuBackgroundHook4>(pattern.get_first(0));
-
-            // TLAD
-            pattern = hook::pattern("8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83 ? ? ? ? 50 8D 84 24 ? ? ? ? EB ? 8D 83");
-            if (!pattern.empty())
-            {
-                struct MenuBackgroundHook5
+                else
                 {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        regs.eax = regs.ebx + 0x112;
+                    pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? F3 0F 10 15");
+                    static float* farClipMultiplier = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(), 8);
+                    static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                        {
+                            static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                            if (fog->get())
+                                regs.xmm2.f32[0] = 1.0f;
+                            else
+                                regs.xmm2.f32[0] = *farClipMultiplier;
 
-                        if (shouldModifyMenuBackground())
-                            regs.eax = regs.ebx + 0x114;
-                    }
-                }; injector::MakeInline<MenuBackgroundHook5>(pattern.get_first(0), pattern.get_first(6));
-            }
-            else
-            {
-                pattern = hook::pattern("8D 8D ? ? ? ? 51 52 E8 ? ? ? ? 8B 08 89 4C 24 18");
-                struct MenuBackgroundHook5
-                {
-                    void operator()(injector::reg_pack& regs)
-                    {
-                        regs.ecx = regs.ebp + 0x112;
-
-                        if (shouldModifyMenuBackground())
-                            regs.ecx = regs.ebp + 0x114;
-                    }
-                }; injector::MakeInline<MenuBackgroundHook5>(pattern.get_first(0), pattern.get_first(6));
-            }
-
-            pattern = find_pattern("83 3D ? ? ? ? ? 74 0C 38 05 ? ? ? ? 0F 84 ? ? ? ? 8D 84 24 ? ? ? ? 68 ? ? ? ? 50", "83 3D ? ? ? ? ? 74 0C 38 1D ? ? ? ? 0F 84 ? ? ? ? 8D 84 24");
-            static auto loc_5AF8EE = resolve_displacement(pattern.get_first(0)).value();
-            struct MenuBackgroundHook6
-            {
-                void operator()(injector::reg_pack& regs)
-                {
-                    if (*pMenuTab == 8 && !shouldModifyMenuBackground())
-                    {
-                        return_to(loc_5AF8EE);
-                    }
+                            if (bIsQUB3D)
+                            {
+                                regs.xmm2.f32[0] = 0.1f;
+                                bIsQUB3D = false;
+                            }
+                        });
                 }
-            }; injector::MakeInline<MenuBackgroundHook6>(pattern.get_first(0), pattern.get_first(9));
 
-            //menu scrolling
-            pattern = find_pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8 E8 ? ? ? ? D9 5C 24 30", "83 F8 10 7E 2A 6A 00 E8 ? ? ? ? 83 E8 08 89 44 24 14");
-            injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
-            pattern = hook::pattern("8D 70 F8 E8 ? ? ? ? D9 5C 24 30");
-            if (!pattern.empty())
-                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xF0, true);
-            else
-            {
-                pattern = hook::pattern("83 E8 08 89 44 24 14");
+                pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? 8B E5");
                 if (!pattern.empty())
-                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
-            }
-            pattern = find_pattern("83 FE 10 7F 08", "83 FF 10 7F 0C");
-            injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
-            pattern = find_pattern("83 F8 10 7E 37 6A 00 E8 ? ? ? ? 83 C4 04 8D 70 F8", "83 F8 ? 7E ? 6A 00 E8 ? ? ? ? 83 E8 08 89 44 24 24");
-            injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10 * 2, true);
-            pattern = hook::pattern("8D 70 F8 E8 ? ? ? ? D9 5C 24 38");
-            if (!pattern.empty())
-                injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xF0, true);
-            else
-            {
-                pattern = hook::pattern("83 E8 08 89 44 24 24");
-                if (!pattern.empty())
-                    injector::WriteMemory<uint8_t>(pattern.get_first(2), 0x10, true);
-            }
-            pattern = find_pattern("8D 46 F0 66 0F 6E C0", "83 C7 F0 89 7C");
-            injector::WriteMemory<uint8_t>(pattern.get_first(2), 0xE0, true);
-
-            //Text
-            CText::Hook();
-
-            // FOG
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? F3 0F 10 05");
-            if (!pattern.empty())
-            {
-                static float* farClipMultiplier = *pattern.get_first<float*>(4);
-                injector::MakeNOP(pattern.get_first(), 8);
-                static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
-                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get())
-                        regs.xmm0.f32[0] = 1.0f;
-                    else
-                        regs.xmm0.f32[0] = *farClipMultiplier;
-
-                    if (bIsQUB3D)
-                    {
-                        regs.xmm0.f32[0] = 0.1f;
-                        bIsQUB3D = false;
-                    }
-                });
-            }
-            else
-            {
-                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? F3 0F 10 15");
-                static float* farClipMultiplier = *pattern.get_first<float*>(4);
-                injector::MakeNOP(pattern.get_first(), 8);
-                static auto farClipMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                    static float* nearFogMultiplier = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(), 8);
+                    static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                        {
+                            static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                            if (fog->get())
+                                regs.xmm0.f32[0] = 1.0f;
+                            else
+                                regs.xmm0.f32[0] = *nearFogMultiplier;
+                        });
+                }
+                else
                 {
-                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get())
-                        regs.xmm2.f32[0] = 1.0f;
-                    else
-                        regs.xmm2.f32[0] = *farClipMultiplier;
+                    pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? 8B E5");
+                    static float* nearFogMultiplier = *pattern.get_first<float*>(4);
+                    injector::MakeNOP(pattern.get_first(), 8);
+                    static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
+                        {
+                            static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
+                            if (fog->get())
+                                regs.xmm2.f32[0] = 1.0f;
+                            else
+                                regs.xmm2.f32[0] = *nearFogMultiplier;
+                        });
+                }
 
-                    if (bIsQUB3D)
-                    {
-                        regs.xmm2.f32[0] = 0.1f;
-                        bIsQUB3D = false;
-                    }
-                });
-            }
-
-            pattern = find_pattern("F3 0F 10 05 ? ? ? ? F3 0F 5C C1 F3 0F 59 C2 F3 0F 58 C1 F3 0F 11 05 ? ? ? ? 8B E5");
-            if (!pattern.empty())
-            {
-                static float* nearFogMultiplier = *pattern.get_first<float*>(4);
-                injector::MakeNOP(pattern.get_first(), 8);
-                static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
                 {
-                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get())
-                        regs.xmm0.f32[0] = 1.0f;
-                    else
-                        regs.xmm0.f32[0] = *nearFogMultiplier;
-                });
-            }
-            else
-            {
-                pattern = find_pattern("F3 0F 10 15 ? ? ? ? F3 0F 5C D1 F3 0F 59 D0 F3 0F 58 D1 F3 0F 11 15 ? ? ? ? 8B E5");
-                static float* nearFogMultiplier = *pattern.get_first<float*>(4);
-                injector::MakeNOP(pattern.get_first(), 8);
-                static auto nearFogMultiplierHook = safetyhook::create_mid(pattern.get_first(), [](SafetyHookContext& regs)
-                {
-                    static auto fog = FusionFixSettings.GetRef("PREF_VOLUMETRICFOG");
-                    if (fog->get())
-                        regs.xmm2.f32[0] = 1.0f;
-                    else
-                        regs.xmm2.f32[0] = *nearFogMultiplier;
-                });
-            }
+                    static SafetyHookInline shGetUserLanguage{};
+                    auto GetUserLanguage = []() -> int
+                        {
+                            auto l = FusionFixSettings.LoadLanguagePref();
+                            if (l >= 0)
+                                return l;
+                            return shGetUserLanguage.call<int>();
+                        };
 
-            {
-                static SafetyHookInline shGetUserLanguage{};
-                auto GetUserLanguage = []() -> int
-                {
-                    auto l = FusionFixSettings.LoadLanguagePref();
-                    if (l >= 0)
-                        return l;
-                    return shGetUserLanguage.call<int>();
-                };
+                    auto pattern = hook::pattern("83 EC ? A1 ? ? ? ? 33 C4 89 44 24 ? A1 ? ? ? ? 8B 0D ? ? ? ? 53 55 56 33 ED 57 33 FF 85 C0 0F 45 E8");
+                    if (!pattern.empty())
+                        shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
+                }
 
-                auto pattern = hook::pattern("83 EC ? A1 ? ? ? ? 33 C4 89 44 24 ? A1 ? ? ? ? 8B 0D ? ? ? ? 53 55 56 33 ED 57 33 FF 85 C0 0F 45 E8");
-                if (!pattern.empty())
-                    shGetUserLanguage = safetyhook::create_inline(pattern.get_first(0), static_cast<int(*)()>(GetUserLanguage));
-            }
-
-            // Shadows setting
-            {
-                FusionFixSettings.SetCallback("PREF_EXTRANIGHTSHADOWS", [](int32_t value)
+                // Shadows setting
                 {
-                    if (value)
+                    FusionFixSettings.SetCallback("PREF_EXTRANIGHTSHADOWS", [](int32_t value)
+                        {
+                            if (value)
+                            {
+                                bExtraNightShadows = true;
+                                bHeadlightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                                bVehicleNightShadows = value != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                            }
+                            else
+                            {
+                                bExtraNightShadows = false;
+                                bHeadlightShadows = false;
+                                bVehicleNightShadows = true;
+                            }
+                        });
+
+                    if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
                     {
                         bExtraNightShadows = true;
-                        bHeadlightShadows = value >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                        bVehicleNightShadows = value != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                        bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
+                        bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
                     }
-                    else
-                    {
-                        bExtraNightShadows = false;
-                        bHeadlightShadows = false;
-                        bVehicleNightShadows = true;
-                    }
-                });
-
-                if (FusionFixSettings("PREF_EXTRANIGHTSHADOWS"))
-                {
-                    bExtraNightShadows = true;
-                    bHeadlightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") >= FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
-                    bVehicleNightShadows = FusionFixSettings("PREF_EXTRANIGHTSHADOWS") != FusionFixSettings.ExtraNightShadowsText.eLampostsHeadl;
                 }
-            }
-        };
+            };
 
         // FPS Counter
         if (GetD3DX9_43DLL())
@@ -1109,221 +1116,221 @@ public:
             static ID3DXFont* pFPSFont = nullptr;
 
             FusionFix::onBeforeReset() += []()
-            {
-                if (pFPSFont)
-                    pFPSFont->Release();
-                pFPSFont = nullptr;
-            };
+                {
+                    if (pFPSFont)
+                        pFPSFont->Release();
+                    pFPSFont = nullptr;
+                };
 
             FusionFix::onEndScene() += []()
-            {
-                static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
-                if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || (*pMenuTab == 0 && CMenu::getSelectedItem() == 13) || fpsc->get())
                 {
-                    static std::list<int> m_times;
-                    static int fontSize = 0;
-
-                    auto pDevice = *RageDirect3DDevice9::m_pRealDevice;
-
-                    LARGE_INTEGER frequency;
-                    LARGE_INTEGER time;
-                    QueryPerformanceFrequency(&frequency);
-                    QueryPerformanceCounter(&time);
-
-                    if (m_times.size() == 50)
-                        m_times.pop_front();
-                    m_times.push_back(static_cast<int>(time.QuadPart));
-
-                    uint32_t fps = 0;
-                    if (m_times.size() >= 2)
-                        fps = static_cast<uint32_t>(0.5f + (static_cast<double>(m_times.size() - 1) * static_cast<double>(frequency.QuadPart)) / static_cast<double>(m_times.back() - m_times.front()));
-
-                    if (!pFPSFont)
+                    static auto fpsc = FusionFixSettings.GetRef("PREF_FPSCOUNTER");
+                    if (pMenuTab && *pMenuTab == 8 || *pMenuTab == 49 || (*pMenuTab == 0 && CMenu::getSelectedItem() == 13) || fpsc->get())
                     {
-                        D3DDEVICE_CREATION_PARAMETERS cparams;
-                        RECT rect;
-                        pDevice->GetCreationParameters(&cparams);
-                        GetClientRect(cparams.hFocusWindow, &rect);
+                        static std::list<int> m_times;
+                        static int fontSize = 0;
 
-                        fontSize = rect.bottom / 20;
+                        auto pDevice = *RageDirect3DDevice9::m_pRealDevice;
 
-                        D3DXFONT_DESC fps_font;
-                        ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
-                        fps_font.Height = fontSize;
-                        fps_font.Width = 0;
-                        fps_font.Weight = 400;
-                        fps_font.MipLevels = 0;
-                        fps_font.Italic = 0;
-                        fps_font.CharSet = DEFAULT_CHARSET;
-                        fps_font.OutputPrecision = OUT_DEFAULT_PRECIS;
-                        fps_font.Quality = ANTIALIASED_QUALITY;
-                        fps_font.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
-                        wchar_t FaceName[] = L"Arial";
-                        memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
+                        LARGE_INTEGER frequency;
+                        LARGE_INTEGER time;
+                        QueryPerformanceFrequency(&frequency);
+                        QueryPerformanceCounter(&time);
 
-                        if (D3DXCreateFontIndirectW(pDevice, &fps_font, &pFPSFont) != D3D_OK)
-                            return;
-                    }
-                    else
-                    {
-                        auto DrawTextOutline = [](ID3DXFont* pFont, FLOAT X, FLOAT Y, D3DXCOLOR dColor, CONST PCHAR cString, ...)
+                        if (m_times.size() == 50)
+                            m_times.pop_front();
+                        m_times.push_back(static_cast<int>(time.QuadPart));
+
+                        uint32_t fps = 0;
+                        if (m_times.size() >= 2)
+                            fps = static_cast<uint32_t>(0.5f + (static_cast<double>(m_times.size() - 1) * static_cast<double>(frequency.QuadPart)) / static_cast<double>(m_times.back() - m_times.front()));
+
+                        if (!pFPSFont)
                         {
-                            const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
-                            CHAR cBuffer[101] = "";
+                            D3DDEVICE_CREATION_PARAMETERS cparams;
+                            RECT rect;
+                            pDevice->GetCreationParameters(&cparams);
+                            GetClientRect(cparams.hFocusWindow, &rect);
 
-                            va_list oArgs;
-                            va_start(oArgs, cString);
-                            _vsnprintf((cBuffer + strlen(cBuffer)), (sizeof(cBuffer) - strlen(cBuffer)), cString, oArgs);
-                            va_end(oArgs);
+                            fontSize = rect.bottom / 20;
 
-                            RECT Rect[5] =
-                            {
-                                { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X), LONG(Y - 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X + 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
-                                { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
-                            };
+                            D3DXFONT_DESC fps_font;
+                            ZeroMemory(&fps_font, sizeof(D3DXFONT_DESC));
+                            fps_font.Height = fontSize;
+                            fps_font.Width = 0;
+                            fps_font.Weight = 400;
+                            fps_font.MipLevels = 0;
+                            fps_font.Italic = 0;
+                            fps_font.CharSet = DEFAULT_CHARSET;
+                            fps_font.OutputPrecision = OUT_DEFAULT_PRECIS;
+                            fps_font.Quality = ANTIALIASED_QUALITY;
+                            fps_font.PitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+                            wchar_t FaceName[] = L"Arial";
+                            memcpy(&fps_font.FaceName, &FaceName, sizeof(FaceName));
 
-                            if (dColor != BLACK)
-                            {
-                                for (auto i = 0; i < 4; i++)
-                                    pFont->DrawTextA(NULL, cBuffer, -1, &Rect[i], DT_NOCLIP, BLACK);
-                            }
-
-                            pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
-                        };
-                        auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
-                        static char str_format_fps[] = "%02d";
-                        static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
-                        static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
-                        static const D3DXCOLOR IV(CText::hasViceCityStrings() ? D3DCOLOR_XRGB(0xF5, 0x8F, 0xBE) : D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
-
-                        DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
-
-                        if (bExtendedTimecycEditing)
+                            if (D3DXCreateFontIndirectW(pDevice, &fps_font, &pFPSFont) != D3D_OK)
+                                return;
+                        }
+                        else
                         {
-                            auto i = 0;
+                            auto DrawTextOutline = [](ID3DXFont* pFont, FLOAT X, FLOAT Y, D3DXCOLOR dColor, CONST PCHAR cString, ...)
+                                {
+                                    const D3DXCOLOR BLACK(D3DCOLOR_XRGB(0, 0, 0));
+                                    CHAR cBuffer[101] = "";
 
-                            static char sVolFogDensity[] = "VolFogDensity: %f";
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogDensity, CTimeCycleExt::GetVolFogDensity());
+                                    va_list oArgs;
+                                    va_start(oArgs, cString);
+                                    _vsnprintf((cBuffer + strlen(cBuffer)), (sizeof(cBuffer) - strlen(cBuffer)), cString, oArgs);
+                                    va_end(oArgs);
 
-                            static char sVolFogHeightFalloff[] = "VolFogHeightFalloff: %f";
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogHeightFalloff, CTimeCycleExt::GetVolFogHeightFalloff());
+                                    RECT Rect[5] =
+                                    {
+                                        { LONG(X - 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                        { LONG(X), LONG(Y - 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                        { LONG(X + 1), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                        { LONG(X), LONG(Y + 1), LONG(X + 500.0f), LONG(Y + 50.0f) },
+                                        { LONG(X), LONG(Y), LONG(X + 500.0f), LONG(Y + 50.0f)},
+                                    };
 
-                            static char sVolFogAltitudeTweak[] = "VolFogAltitudeTweak: %f";
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogAltitudeTweak, CTimeCycleExt::GetVolFogAltitudeTweak());
+                                    if (dColor != BLACK)
+                                    {
+                                        for (auto i = 0; i < 4; i++)
+                                            pFont->DrawTextA(NULL, cBuffer, -1, &Rect[i], DT_NOCLIP, BLACK);
+                                    }
 
-                            static char sVolFogPower[] = "VolFogPower: %f";
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogPower, CTimeCycleExt::GetVolFogPower());
+                                    pFont->DrawTextA(NULL, cBuffer, -1, &Rect[4], DT_NOCLIP, dColor);
+                                };
+                            auto curEp = _dwCurrentEpisode ? *_dwCurrentEpisode : 0;
+                            static char str_format_fps[] = "%02d";
+                            static const D3DXCOLOR TBOGT(D3DCOLOR_XRGB(0xD7, 0x11, 0x6E));
+                            static const D3DXCOLOR TLAD(D3DCOLOR_XRGB(0x6F, 0x0D, 0x0F));
+                            static const D3DXCOLOR IV(CText::hasViceCityStrings() ? D3DCOLOR_XRGB(0xF5, 0x8F, 0xBE) : D3DCOLOR_XRGB(0xF0, 0xA0, 0x00));
 
-                            static char sSSIntensity[] = "SSIntensity: %f";
-                            DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sSSIntensity, CTimeCycleExt::GetSSIntensity());
+                            DrawTextOutline(pFPSFont, 10, 10, (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), str_format_fps, fps);
 
-                            static std::string_view modNames[] = {
-                                "noambient", "NoAmbientmult", "qwnomoon", "qw2nomoon", "Brook_S2_TC", "MH_NOMOON", "KsS1nomoon1", "KsS1nomoon2", "KsS1nomoon3", "Brook_N_gden", "Buildsite_MH1",
-                                "MH3carpark", "bkn2_Nomoon1", "bkn2_Nomoon2", "bks3norain", "MHNoMoon", "erosware", "QM_Nomoon", "NJ2nomoon", "bxwnomoon", "star_junc", "raytest",
-                                "raytest2", "NJ02TUNNEL", "Internaldim", "SoosTunnel", "Nikwarehouse", "clam", "vlads", "generic", "jamcafe", "ten_str", "playboyx", "browner",
-                                "limo", "STEVETUNNEL", "SUBWAY", "SUBWAY_STATION", "CARPARK", "RomansFl", "rscafe", "bernies", "Factorytest", "Factory", "bens2", "Hospital",
-                                "Museum2", "Bada", "Badamine", "DrugDen", "Bank3", "Chase", "sexshop", "Diner", "hospitallobby", "Trespass", "ritz", "ritzf3", "ritzpen",
-                                "intcafe", "firedept", "deal", "korrest", "korbar", "korkitch", "apart", "parktoilet", "HarlemProjects", "HarlemDrug", "JerSave", "burgershot",
-                                "burgershotold", "HarlemTopFloor", "Irishbar", "boatcabs", "corplobby", "binco", "gazwarehouse", "bruciechopshop", "playboyxlobby", "statuestair",
-                                "waste", "Bowl", "GunShop", "chinagun", "harlem_ten", "sw_har_decor", "sw_har_psh", "ten_standard", "ten_ornate", "ten_modern", "cluckinbell",
-                                "Casino", "limooffice", "DrugDenStair", "project", "DwayneApart", "stair1", "stair2", "MH8_carpark", "MH8_Savehouse", "MH8_Showroom", "STUDIO_APART01",
-                                "projectStair", "lightning", "playersettings", "playersettings2", "sniper", "sniper_ini", "binocular", "injured", "fast", "death", "death2", "death3",
-                                "train_int", "busted", "cabaret", "lobby2office", "lobby2", "Police", "SUBWAYSERV", "SUBWAYENT", "SUBWAY_N", "SUBWAY_E", "SUBWAY_S", "SUBWAY_W",
-                                "NIGHTSHADE", "PIZZAREST", "PIZZAREST2", "BRUCIE_STUDIO", "church", "Faustins", "Faustinsbase", "LittleJacobs", "Prison", "BernieCrane",
-                                "McRearyHouse", "CopshopOffice", "Michelles", "sopranos", "Manny", "CIAoffice", "portacabin", "comclub", "elizabetas", "Bada", "fau3_a",
-                                "imbhst", "em_4b", "g_1", "g_2", "g_3", "em_4", "df_2", "df_3", "lilj1_a", "imfau6", "imfau2", "wedint", "gm_2", "br_1", "br_4", "px_2",
-                                "pxdf", "rb_4b", "vla1_a", "vla2_a", "vla4_a", "rom8_b", "pm_3", "em_1", "em_2", "em_3", "em_5", "em_7", "fau4_a", "show_1", "show_2",
-                                "show_3", "show_4", "show_5", "show_6", "show_7", "show_8", "rb_4", "j_1", "rp_13", "rom2_a", "rom3_a", "rom5_a", "rom6_a", "rom8_a",
-                                "r_9", "Classic", "Tweaked", "Cinema", "Verte", "Hot", "Steel", "Psyche", "Romantic", "Sepia", "Muddy", "Neon", "Rouge", "Bronze",
-                                "Ulraviolet", "Eclipse", "Noire", "colors", "Vintage", "Fire", "Sketch", "em_1", "em_2", "em_5",
-                            };
-
-                            static char sModifiers[] = "%s %f";
-                            for (const auto& it : currentTimecycleModifiers)
+                            if (bExtendedTimecycEditing)
                             {
-                                if (it.first >= 0 && it.first < CTimeCycleModifier::ARRAY_SIZE)
-                                    DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
+                                auto i = 0;
+
+                                static char sVolFogDensity[] = "VolFogDensity: %f";
+                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogDensity, CTimeCycleExt::GetVolFogDensity());
+
+                                static char sVolFogHeightFalloff[] = "VolFogHeightFalloff: %f";
+                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogHeightFalloff, CTimeCycleExt::GetVolFogHeightFalloff());
+
+                                static char sVolFogAltitudeTweak[] = "VolFogAltitudeTweak: %f";
+                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogAltitudeTweak, CTimeCycleExt::GetVolFogAltitudeTweak());
+
+                                static char sVolFogPower[] = "VolFogPower: %f";
+                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sVolFogPower, CTimeCycleExt::GetVolFogPower());
+
+                                static char sSSIntensity[] = "SSIntensity: %f";
+                                DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sSSIntensity, CTimeCycleExt::GetSSIntensity());
+
+                                static std::string_view modNames[] = {
+                                    "noambient", "NoAmbientmult", "qwnomoon", "qw2nomoon", "Brook_S2_TC", "MH_NOMOON", "KsS1nomoon1", "KsS1nomoon2", "KsS1nomoon3", "Brook_N_gden", "Buildsite_MH1",
+                                    "MH3carpark", "bkn2_Nomoon1", "bkn2_Nomoon2", "bks3norain", "MHNoMoon", "erosware", "QM_Nomoon", "NJ2nomoon", "bxwnomoon", "star_junc", "raytest",
+                                    "raytest2", "NJ02TUNNEL", "Internaldim", "SoosTunnel", "Nikwarehouse", "clam", "vlads", "generic", "jamcafe", "ten_str", "playboyx", "browner",
+                                    "limo", "STEVETUNNEL", "SUBWAY", "SUBWAY_STATION", "CARPARK", "RomansFl", "rscafe", "bernies", "Factorytest", "Factory", "bens2", "Hospital",
+                                    "Museum2", "Bada", "Badamine", "DrugDen", "Bank3", "Chase", "sexshop", "Diner", "hospitallobby", "Trespass", "ritz", "ritzf3", "ritzpen",
+                                    "intcafe", "firedept", "deal", "korrest", "korbar", "korkitch", "apart", "parktoilet", "HarlemProjects", "HarlemDrug", "JerSave", "burgershot",
+                                    "burgershotold", "HarlemTopFloor", "Irishbar", "boatcabs", "corplobby", "binco", "gazwarehouse", "bruciechopshop", "playboyxlobby", "statuestair",
+                                    "waste", "Bowl", "GunShop", "chinagun", "harlem_ten", "sw_har_decor", "sw_har_psh", "ten_standard", "ten_ornate", "ten_modern", "cluckinbell",
+                                    "Casino", "limooffice", "DrugDenStair", "project", "DwayneApart", "stair1", "stair2", "MH8_carpark", "MH8_Savehouse", "MH8_Showroom", "STUDIO_APART01",
+                                    "projectStair", "lightning", "playersettings", "playersettings2", "sniper", "sniper_ini", "binocular", "injured", "fast", "death", "death2", "death3",
+                                    "train_int", "busted", "cabaret", "lobby2office", "lobby2", "Police", "SUBWAYSERV", "SUBWAYENT", "SUBWAY_N", "SUBWAY_E", "SUBWAY_S", "SUBWAY_W",
+                                    "NIGHTSHADE", "PIZZAREST", "PIZZAREST2", "BRUCIE_STUDIO", "church", "Faustins", "Faustinsbase", "LittleJacobs", "Prison", "BernieCrane",
+                                    "McRearyHouse", "CopshopOffice", "Michelles", "sopranos", "Manny", "CIAoffice", "portacabin", "comclub", "elizabetas", "Bada", "fau3_a",
+                                    "imbhst", "em_4b", "g_1", "g_2", "g_3", "em_4", "df_2", "df_3", "lilj1_a", "imfau6", "imfau2", "wedint", "gm_2", "br_1", "br_4", "px_2",
+                                    "pxdf", "rb_4b", "vla1_a", "vla2_a", "vla4_a", "rom8_b", "pm_3", "em_1", "em_2", "em_3", "em_5", "em_7", "fau4_a", "show_1", "show_2",
+                                    "show_3", "show_4", "show_5", "show_6", "show_7", "show_8", "rb_4", "j_1", "rp_13", "rom2_a", "rom3_a", "rom5_a", "rom6_a", "rom8_a",
+                                    "r_9", "Classic", "Tweaked", "Cinema", "Verte", "Hot", "Steel", "Psyche", "Romantic", "Sepia", "Muddy", "Neon", "Rouge", "Bronze",
+                                    "Ulraviolet", "Eclipse", "Noire", "colors", "Vintage", "Fire", "Sketch", "em_1", "em_2", "em_5",
+                                };
+
+                                static char sModifiers[] = "%s %f";
+                                for (const auto& it : currentTimecycleModifiers)
+                                {
+                                    if (it.first >= 0 && it.first < CTimeCycleModifier::ARRAY_SIZE)
+                                        DrawTextOutline(pFPSFont, 10, FLOAT(fontSize * ++i), (curEp == 2) ? TBOGT : ((curEp == 1) ? TLAD : IV), sModifiers, modNames[it.first].data(), it.second);
+                                }
                             }
                         }
                     }
-                }
-            };
+                };
 
             if (bExtendedTimecycEditing)
             {
                 FusionFix::onGameProcessEvent() += []()
-                {
-                    static auto oldState = IsKeyboardKeyPressed(VK_F3);
-                    auto curState = IsKeyboardKeyPressed(VK_F3);
-                    if (!oldState && curState)
                     {
-                        CTimeCycle::Initialise();
-                        CTimeCycle::InitialiseModifiers();
-                    }
-                    oldState = curState;
-                };
+                        static auto oldState = IsKeyboardKeyPressed(VK_F3);
+                        auto curState = IsKeyboardKeyPressed(VK_F3);
+                        if (!oldState && curState)
+                        {
+                            CTimeCycle::Initialise();
+                            CTimeCycle::InitialiseModifiers();
+                        }
+                        oldState = curState;
+                    };
             }
 
             FusionFix::onShutdownEvent() += []()
-            {
-                if (pFPSFont)
-                    pFPSFont->Release();
-                pFPSFont = nullptr;
-            };
+                {
+                    if (pFPSFont)
+                        pFPSFont->Release();
+                    pFPSFont = nullptr;
+                };
 
             FusionFix::onInitEventAsync() += []()
-            {
-                auto stationslimit = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "audio" / "Config" / "stationslimit.txt";
-
-                std::ifstream is(stationslimit, std::ios::in);
-                if (is)
                 {
-                    int limit = -1;
-                    is >> limit;
+                    auto stationslimit = GetModulePath(GetModuleHandleW(NULL)).parent_path() / "pc" / "audio" / "Config" / "stationslimit.txt";
 
-                    if (limit >= 0 && limit <= 23)
+                    std::ifstream is(stationslimit, std::ios::in);
+                    if (is)
                     {
-                        auto pattern = hook::pattern("0F B6 35 ? ? ? ? 85 F6");
-                        if (!pattern.empty())
+                        int limit = -1;
+                        is >> limit;
+
+                        if (limit >= 0 && limit <= 23)
                         {
-                            static int stationsLimit = limit;
-                            injector::WriteMemory(pattern.get_first(3), &stationsLimit, true);
+                            auto pattern = hook::pattern("0F B6 35 ? ? ? ? 85 F6");
+                            if (!pattern.empty())
+                            {
+                                static int stationsLimit = limit;
+                                injector::WriteMemory(pattern.get_first(3), &stationsLimit, true);
+                            }
                         }
                     }
-                }
-            };
+                };
 
             FusionFix::onMenuDrawingEvent() += []()
-            {
-                if (*pMenuTab == 3)
-                    fMenuBlur = 1.0f;
-                else
-                    fMenuBlur = 0.0f;
-            };
+                {
+                    if (*pMenuTab == 3)
+                        fMenuBlur = 1.0f;
+                    else
+                        fMenuBlur = 0.0f;
+                };
 
             FusionFix::onMenuExitEvent() += []()
-            {
-                fMenuBlur = 0.0f;
-            };
+                {
+                    fMenuBlur = 0.0f;
+                };
 
             auto pattern = find_pattern("51 56 57 64 8B 3D", "51 53 56 BE ? ? ? ? 33 DB");
             static auto readFrontendMenuHook = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-            {
-                static bool bOnce = false;
-
-                if (!bOnce)
                 {
-                    bOnce = true;
-                    auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get();
-                    if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
-                    else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
-                        FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
-                }
-            });
+                    static bool bOnce = false;
+
+                    if (!bOnce)
+                    {
+                        bOnce = true;
+                        auto api = FusionFixSettings.GetRef("PREF_GRAPHICSAPI")->get();
+                        if (api && !GetModuleHandleW(L"winevulkan.dll") && !GetModuleHandleW(L"vulkan-1.dll"))
+                            FusionFixSettings.Set("PREF_GRAPHICSAPI", 0);
+                        else if (!api && (GetModuleHandleW(L"winevulkan.dll") || GetModuleHandleW(L"vulkan-1.dll")))
+                            FusionFixSettings.Set("PREF_GRAPHICSAPI", 1);
+                    }
+                });
 
             // RMB as previous in menus
             pattern = find_pattern("F6 C1 01 0F 84 ? ? ? ? EB 1B", "F6 C2 01 0F 84 ? ? ? ? 8B 04 B5");
@@ -1337,31 +1344,31 @@ public:
             if (!pattern.empty())
             {
                 static auto GetRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bRmb = (*(uint8_t*)&regs.ecx & 2) != 0;
-                });
+                    {
+                        bRmb = (*(uint8_t*)&regs.ecx & 2) != 0;
+                    });
             }
             else
             {
                 pattern = find_pattern("F6 C2 01 0F 84 ? ? ? ? 80 BC 08");
                 static auto GetRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-                {
-                    bRmb = (*(uint8_t*)&regs.edx & 2) != 0;
-                });
+                    {
+                        bRmb = (*(uint8_t*)&regs.edx & 2) != 0;
+                    });
             }
 
             pattern = find_pattern("83 C4 1C 84 C0 74 ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? 8B 04 BD ? ? ? ? C7 80 ? ? ? ? ? ? ? ? 8B 04 BD ? ? ? ? 0F B6 84 30", "83 C4 1C 84 C0 74 ? 68 ? ? ? ? B9 ? ? ? ? E8 ? ? ? ? 8B 0C B5 ? ? ? ? C7 81 ? ? ? ? ? ? ? ? 8B 14 B5");
             static auto CheckRMBClick = safetyhook::create_mid(pattern.get_first(0), [](SafetyHookContext& regs)
-            {
-                if (*(uint8_t*)&regs.eax == 0)
                 {
-                    if (bRmb)
+                    if (*(uint8_t*)&regs.eax == 0)
                     {
-                        regs.eax = 1;
-                        bRmb = false;
+                        if (bRmb)
+                        {
+                            regs.eax = 1;
+                            bRmb = false;
+                        }
                     }
-                }
-            });
+                });
 
             hbGET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT.fun = NativeOverride::Register(Natives::NativeHashes::GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, NATIVE_GET_NUMBER_OF_INSTANCES_OF_STREAMED_SCRIPT, "E8", 30);
         }
