@@ -499,7 +499,7 @@
       <options text="FXAA" action="ACTION_NONE" value="2" />
       <options text="SMAA" action="ACTION_NONE" value="3" />
     </menupc>
-    <menupc enum="MENU_DISPLAY_ENHANCEDMOVE">
+    <menupc enum="MENU_DISPLAY_ENHANCEDMOVEMENT">
         <options text="MO_OFF" action="ACTION_NONE" value="4" />
         <options text="Always Run" action="ACTION_NONE" value="5" />
         <options text="Armed Only" action="ACTION_NONE" value="6" />
@@ -570,7 +570,7 @@
       <options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Enhanced Movement" value="PREF_ENHANCEDMOVE" scaler="8" displayValue="MENU_DISPLAY_ENHANCEDMOVE" />
+            <optionspc action="MENUOPT_ADJUST" label="Enhanced Run" value="PREF_ENHANCEDMOVEMENT" scaler="8" displayValue="MENU_DISPLAY_ENHANCEDMOVEMENT" />
 			<optionspc action="MENUOPT_ADJUST" label="Sprint Interior" value="PREF_SPRINTINTERIOR" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Zoomed Movement" value="PREF_ZOOMEDMOVEMENT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Extended Sniper" value="PREF_EXTENDEDSNIPERCONTROLS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
@@ -1318,7 +1318,7 @@
       <options action="MENUOPT_CONTROLLER_OPTIONS" label="MO_CTRLOPT" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
       
             <optionspc action="MENUOPT_NONE" label="" value="PREF_NULL" scaler="0" displayValue="MENU_DISPLAY_NONE" />
-            <optionspc action="MENUOPT_ADJUST" label="Enhanced Movement" value="PREF_ENHANCEDMOVE" scaler="8" displayValue="MENU_DISPLAY_ENHANCEDMOVE" />
+            <optionspc action="MENUOPT_ADJUST" label="Enhanced Run" value="PREF_ENHANCEDMOVEMENT" scaler="8" displayValue="MENU_DISPLAY_ENHANCEDMOVEMENT" />
 			<optionspc action="MENUOPT_ADJUST" label="Sprint Interior" value="PREF_SPRINTINTERIOR" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Zoomed Movement" value="PREF_ZOOMEDMOVEMENT" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />
             <optionspc action="MENUOPT_ADJUST" label="Extended Sniper" value="PREF_EXTENDEDSNIPERCONTROLS" scaler="2" displayValue="MENU_DISPLAY_ON_OFF" />

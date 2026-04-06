@@ -301,7 +301,7 @@ public:
             { 0, "PREF_TREEALPHA",              "MISC",       "TreeAlpha",                          "MENU_DISPLAY_TREE_LIGHTING", 6, nullptr, (int32_t)TreeFxText.ePC, std::distance(std::begin(TreeFxText.data), std::end(TreeFxText.data)) - 1 },
             { 0, "PREF_SUNSHAFTS",              "MISC",       "SunShafts",                          "",                           0, nullptr, 0, 1 },
             { 0, "PREF_FPSCOUNTER",             "FRAMELIMIT", "DisplayFpsCounter",                  "",                           0, nullptr, 0, 1 },
-            { 0, "PREF_ENHANCEDMOVE",           "MISC",       "EnhancedMove",                       "",                           7, nullptr, (int32_t)EnhancedMoveText.eMO_OFF, std::distance(std::begin(EnhancedMoveText.data), std::end(EnhancedMoveText.data)) - 1 },
+            { 0, "PREF_ENHANCEDMOVEMENT",       "MISC",       "EnhancedMovement",                   "",                           7, nullptr, (int32_t)EnhancedMovementText.eMO_OFF, std::distance(std::begin(EnhancedMovementText.data), std::end(EnhancedMovementText.data)) - 1 },
             { 0, "PREF_ALTDIALOGUE",            "MISC",       "AltDialogue",                        "",                           0, nullptr, 0, 1 },
             { 0, "PREF_COVERCENTERING",         "MISC",       "CameraCenteringInCover",             "",                           0, nullptr, 0, 1 },
             { 0, "PREF_KBCAMCENTERDELAY",       "MISC",       "DelayBeforeCenteringCameraKB",       "",                           4, nullptr, 0, 9 },
@@ -619,9 +619,9 @@ public:
 
     struct
     {
-        enum eEnhancedMoveText { eOff, eOn, ePC, eConsole, eMO_OFF, eMO_ON, eArmedOnly, eNoJogging };
+        enum eEnhancedMovementText { eOff, eOn, ePC, eConsole, eMO_OFF, eMO_ON, eArmedOnly, eNoJogging };
         std::vector<const char*> data = { "Off", "On", "PC", "Console", "MO_OFF", "MO_ON", "Armed Only", "No Jogging" };
-    } EnhancedMoveText;
+    } EnhancedMovementText;
 
     struct
     {

@@ -56,7 +56,7 @@ public:
                             if (currentWeapon == 0) bIsFists = true;
                         }
 
-                        static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ENHANCEDMOVE");
+                        static auto alwaysrunPref = FusionFixSettings.GetRef("PREF_ENHANCEDMOVEMENT");
                         static auto sprintPref = FusionFixSettings.GetRef("PREF_SPRINT");
 
                         auto bShouldRun = alwaysrunPref->get() > 4;  // main toggle from menu, has to look for values greater than 4 only because MO_OFF is 4
@@ -114,14 +114,14 @@ public:
 
                 pattern = find_pattern("77 5F 8B 8E", "77 46 8B 8F");
                 static raw_mem GamepadCB(pattern.get_first(0), { 0x90, 0x90 }); // NOP
-                FusionFixSettings.SetCallback("PREF_ENHANCEDMOVE", [](int32_t value)
+                FusionFixSettings.SetCallback("PREF_ENHANCEDMOVEMENT", [](int32_t value)
                     {
                         if (value)
                             GamepadCB.Write();
                         else
                             GamepadCB.Restore();
                     });
-                if (FusionFixSettings("PREF_ENHANCEDMOVE"))
+                if (FusionFixSettings("PREF_ENHANCEDMOVEMENT"))
                     GamepadCB.Write();
 
 
